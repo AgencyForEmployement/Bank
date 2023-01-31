@@ -36,6 +36,7 @@ public class TransactionController {
         return new ResponseEntity<>(transactionService.requestPayment(paymentForBankRequestDto), HttpStatus.OK);
     }
 
+    //front banke nakon popunjenih podataka iz kartice
     @PostMapping(value = "/withCard")
     public ResponseEntity<String> pay(@RequestBody CardDto cardDto){
         Transaction transaction = transactionService.pay(cardDto);

@@ -37,11 +37,11 @@ public class TransactionService {
 
     public Transaction pay(CardDto cardDto) {
         Transaction transaction = transactionRepository.findByPaymentId(cardDto.getPaymentId());
-        Client client = clientService.findByPan(cardDto.getPan());
-        Client acquirer = clientService.findByPan(panAcquirer);
+        Client client = clientService.findByPan(cardDto.getPan()); //kupac
+        Client acquirer = clientService.findByPan(panAcquirer); //prodavac
 
         //provarava validnost dobijenih podataka
-        if (checkValidityOfIssuerCardData(cardDto)==false){
+        if (!checkValidityOfIssuerCardData(cardDto)){
             transaction.setTransactionStatus(TransactionStatus.FAILED);
             return transaction;
         }
@@ -66,6 +66,7 @@ public class TransactionService {
         } else
             return null; // na kontroleru ce ovim da se preusmeri na korak 3b,4,5,6 -----------> slucaj kada su razlicite banke
 
+        transactionRepository.save(transaction);
         return transaction;
     }
 
@@ -135,8 +136,7 @@ public class TransactionService {
     @Scheduled(cron = "${greeting.cron}")
     private void finishTransactions(){
         //nisam ova cuvanja verovatno napisala kako treba zato je zakomentarisano
-       // Client acquirer = clientService.findByPan(panAcquirer);
-        //prodji kroz sve klijente i sve njihove rezervacije
+       // Client acquirer = clientService.findByPan(panAcquirer);//prodji kroz sve klijente i sve njihove rezervacije
 //        for (Reservation reservation: reservationService.getAllWithClients()) {
 //            double newAmount = reservation.getClient().getAccount().getAmount() - reservation.getAmount();//smanji novac kupcu
 //            reservation.getClient().getAccount().setAmount(newAmount);
