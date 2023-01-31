@@ -24,15 +24,16 @@ public class TransactionController {
     private RestTemplate restTemplate;
 
     @Value("${app.pspUrl}")
-    private String pspUrl;
+    private String pspUrl; //mozda bude pucalo zbog noArgsCont a kada ne stavim njega ne prolazi mi ovo za citanje iz application.properties
 
     @Value("${app.pcpUrl}")
     private String panAcquirer;
 
+    //kada kupac na pspu klike nacin placanja karticom i psp gadja ovaj endpoint
     @PostMapping
     public ResponseEntity<PaymentResponseDTO> requestPayment(@RequestBody PaymentForBankRequestDto paymentForBankRequestDto){
 
-        return new ResponseEntity<>(transactionService.requestPayment(paymentForBankRequestDto), HttpStatus.OK);  //svoj link do fronta i id
+        return new ResponseEntity<>(transactionService.requestPayment(paymentForBankRequestDto), HttpStatus.OK);
     }
 
     @PostMapping(value = "/withCard")
@@ -40,7 +41,7 @@ public class TransactionController {
         Transaction transaction = transactionService.pay(cardDto);
 
         if (transaction == null)
-            sendRequestToPCC(cardDto, transaction);
+            sendRequestToPCC(cardDto);
         else
             sendRequestToPSP(transaction);
             //obavestiti web shop da je nesto kupljeno, npr da mu se ne prikazuje kao artikal ??
@@ -48,7 +49,7 @@ public class TransactionController {
         return new ResponseEntity<>(transactionService.getPaymentURL(transaction, cardDto), HttpStatus.OK);
     }
 
-    private void sendRequestToPCC(CardDto cardDto, Transaction transaction) {
+    private void sendRequestToPCC(CardDto cardDto) {
         //napraviti dto sa podacima koji su potrebni pcc-u
         //posalti zahtev pcc preko restTemplate
     }

@@ -74,7 +74,7 @@ public class TransactionService {
         if (client.getReservations().size() > 0)
           sum = sumReservations(client.getReservations());
 
-        if ((client.getAccount().getAmount() - sum - amount) >= 0) //uzima u obzir i neogracene rezervacije
+        if ((client.getAccount().getAmount() - sum - amount) >= 0) //uzima u obzir i neobradjene rezervacije
             return true;
         else
             return false;
@@ -134,15 +134,17 @@ public class TransactionService {
 
     @Scheduled(cron = "${greeting.cron}")
     private void finishTransactions(){
-        Client acquirer = clientService.findByPan(panAcquirer);
+        //nisam ova cuvanja verovatno napisala kako treba zato je zakomentarisano
+       // Client acquirer = clientService.findByPan(panAcquirer);
         //prodji kroz sve klijente i sve njihove rezervacije
-        for (Reservation reservation: reservationService.getAllWithClients()) {
-            double newAmount = reservation.getClient().getAccount().getAmount() - reservation.getAmount();//smanji novac kupcu
-            reservation.getClient().getAccount().setAmount(newAmount);
-            reservationService.save(reservation);
-            double newAmountForAcquirer = acquirer.getAccount().getAmount() + reservation.getAmount(); //povecaj novac prodavcu
-            acquirer.getAccount().setAmount(newAmountForAcquirer);
-            reservationService.deleteById(reservation);//izbrsi rezervaciju
-        }
+//        for (Reservation reservation: reservationService.getAllWithClients()) {
+//            double newAmount = reservation.getClient().getAccount().getAmount() - reservation.getAmount();//smanji novac kupcu
+//            reservation.getClient().getAccount().setAmount(newAmount);
+//            reservationService.save(reservation);
+//            double newAmountForAcquirer = acquirer.getAccount().getAmount() + reservation.getAmount(); //povecaj novac prodavcu
+//            acquirer.getAccount().setAmount(newAmountForAcquirer);
+//            reservationService.deleteById(reservation);//izbrsi rezervaciju
+//        }
+        //nije promenjena transakcija u success
     }
 }
