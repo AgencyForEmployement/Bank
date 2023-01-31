@@ -126,11 +126,11 @@ public class TransactionService {
 
     public String getPaymentURL(Transaction transaction, CardDto cardDto) {
         if (transaction.getTransactionStatus() == TransactionStatus.SUCCESS || transaction.getTransactionStatus() == TransactionStatus.IN_PROGRESS)
-            return cardDto.getSuccessUrl().getURL();
+            return cardDto.getSuccessUrl();
         else if (transaction.getTransactionStatus() == TransactionStatus.FAILED)
-            return cardDto.getFailedUrl().getURL();
+            return cardDto.getFailedUrl();
         else
-            return cardDto.getErrorUrl().getURL();
+            return cardDto.getErrorUrl();
     }
 
     @Scheduled(cron = "${greeting.cron}")

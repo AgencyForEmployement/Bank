@@ -22,6 +22,10 @@ public class Client {
     private String name;
     @Column
     private String surname;
+    @Column
+    private String merchantId;
+    @Column
+    private String merchantPassword;
     @OneToOne(fetch = FetchType.EAGER)
     private Account account;
     @ManyToOne(fetch = FetchType.LAZY,cascade =  CascadeType.ALL)

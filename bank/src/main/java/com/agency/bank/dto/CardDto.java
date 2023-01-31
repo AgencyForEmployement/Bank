@@ -1,6 +1,5 @@
 package com.agency.bank.dto;
 
-import com.agency.bank.model.PaymentURL;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +17,7 @@ public class CardDto {
     private String dateExpiration;
     private String description; //sta se kupuje
     private double amount;
-    private PaymentURL successUrl;
-    private PaymentURL failedUrl;
-    private PaymentURL errorUrl;
+    private String successUrl;
+    private String failedUrl;
+    private String errorUrl;
 }

@@ -32,7 +32,7 @@ public class TransactionController {
     //kada kupac na pspu klike nacin placanja karticom i psp gadja ovaj endpoint
     @PostMapping
     public ResponseEntity<PaymentResponseDTO> requestPayment(@RequestBody PaymentForBankRequestDto paymentForBankRequestDto){
-
+        //provera merchant info
         return new ResponseEntity<>(transactionService.requestPayment(paymentForBankRequestDto), HttpStatus.OK);
     }
 
