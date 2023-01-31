@@ -8,7 +8,6 @@ import com.agency.bank.model.Card;
 import com.agency.bank.model.Client;
 import com.agency.bank.model.Reservation;
 import com.agency.bank.model.Transaction;
-import com.agency.bank.repository.ReservationRepository;
 import com.agency.bank.repository.TransactionRepository;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -59,7 +58,7 @@ public class TransactionService {
                         .acquirerAccountNumber(acquirer.getAccount().getAccountNumber())
                         .build();
                 transaction.setTransactionStatus(TransactionStatus.IN_PROGRESS);
-                transaction.setAcquirerOrderId(generatePaymentId());
+                transaction.setAcquirerOrderId(generateRandomNumber());
                 transaction.setAcquirerTimestamp(LocalDateTime.now());
                 reservationService.save(reservation);
             } else
@@ -104,7 +103,7 @@ public class TransactionService {
 
     public PaymentResponseDTO requestPayment(PaymentForBankRequestDto paymentForBankRequestDto) {
         Transaction transaction = Transaction.builder()
-                                                .paymentId(generatePaymentId())
+                                                .paymentId(generateRandomNumber())
                                                 .transactionStatus(TransactionStatus.PAYMENT_REQUESTED)
                                                 .merchantOrderId(paymentForBankRequestDto.getMerchantOrderId())
                                                 .merchantTimestamp(paymentForBankRequestDto.getMerchantTimestamp())
@@ -119,7 +118,7 @@ public class TransactionService {
                 .build();
     }
 
-    private int generatePaymentId() {
+    private int generateRandomNumber() {
         int m = (int) Math.pow(10, 10 - 1);
         return m + new Random().nextInt(9 * m);
     }
