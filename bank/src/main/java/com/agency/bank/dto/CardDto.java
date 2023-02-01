@@ -15,7 +15,7 @@ public class CardDto {
     private String securityCode;
     private String cardHolderName;
     private String dateExpiration;
-    private String description; 
+    private String description;
     private String amount;
     private String successUrl;
     private String failedUrl;

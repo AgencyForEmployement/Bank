@@ -28,7 +28,7 @@ public class Client {
     private String merchantPassword;
     @OneToOne(fetch = FetchType.EAGER)
     private Account account;
-    @ManyToOne(fetch = FetchType.LAZY,cascade =  CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER,cascade =  CascadeType.ALL)
     private Card card;
     @OneToMany(mappedBy = "client", fetch = FetchType.EAGER,cascade =  CascadeType.PERSIST)
     private List<Reservation> reservations;

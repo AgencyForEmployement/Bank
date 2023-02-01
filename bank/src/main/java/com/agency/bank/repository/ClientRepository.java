@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface ClientRepository extends JpaRepository<Client,Long> {
-    @Query("select c from Client c left join fetch Card card where card.pan = ?1")
+    @Query("select c from Client c left join fetch c.card card where card.pan = ?1")
     Client findClientByPan(String pan);
 }

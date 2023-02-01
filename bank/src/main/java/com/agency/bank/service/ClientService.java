@@ -13,6 +13,7 @@ public class ClientService {
     private final ClientRepository clientRepository;
 
     public Client findByPan(String pan) {
-        return clientRepository.findClientByPan(pan);
+        Client c = clientRepository.findClientByPan(pan);
+        return c;
     }
 }

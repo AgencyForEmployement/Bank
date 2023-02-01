@@ -22,16 +22,21 @@ public class TransactionController {
 
     private TransactionService transactionService;
     private RestTemplate restTemplate;
-    @Value("${app.pspUrl}")
     private static String pspUrl; //mozda bude pucalo zbog noArgsCont a kada ne stavim njega ne prolazi mi ovo za citanje iz application.properties
+    private static String pcpUrl;
+    @Value("${bank.pspUrl}")
+    public void setPspUrl(String pspUrl){
+        this.pspUrl = pspUrl;
+    }
 
-    @Value("${app.pcpUrl}")
-    private static String panAcquirer;
+    @Value("${bank.pcpUrl}")
+    public void setPcpUrl(String pcpUrl){
+        this.pcpUrl = pcpUrl;
+    }
 
     //kada kupac na pspu klike nacin placanja karticom i psp gadja ovaj endpoint
     @PostMapping
     public ResponseEntity<PaymentResponseDTO> requestPayment(@RequestBody PaymentForBankRequestDto paymentForBankRequestDto){
-        //provera merchant info
         return new ResponseEntity<>(transactionService.requestPayment(paymentForBankRequestDto), HttpStatus.OK);
     }
 
@@ -65,6 +70,7 @@ public class TransactionController {
                 .transactionStatus(transaction.getTransactionStatus())
                 .build();
 
-        restTemplate.postForObject(pspUrl, pspResponseDto, PSPResponseDto.class);
+        HttpStatus response = restTemplate.postForObject(pspUrl, pspResponseDto, HttpStatus.class);
+        System.out.println(response);
     }
 }

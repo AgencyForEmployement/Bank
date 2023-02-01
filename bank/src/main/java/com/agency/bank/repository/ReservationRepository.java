@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation,Long> {
-    @Query("select r from Reservation r left join fetch Client c where r.client.id = c.id")
+    @Query("select r from Reservation r left join fetch r.client c where r.client.id = c.id")
     List<Reservation> getAllWithClients();
 }
