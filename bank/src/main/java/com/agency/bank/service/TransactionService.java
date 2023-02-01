@@ -205,21 +205,21 @@ public class TransactionService {
     //kad od pcca stigne transakcija sa banke 2, ovde se kreira
     public Transaction transferMoneyToBank(TransactionPCCResponseDto transactionRequest){
         //OVDE TREBA DODATI PROVERU TRANSAKCIJE
-        Transaction transaction = Transaction.builder()
-                 .paymentId(transactionRequest.getPaymentId())
-                .transactionStatus(transactionRequest.getTransactionStatus())
-                .merchantOrderId((transactionRequest.getMerchantOrderId()))
-              //  .merchantTimestamp(transactionRequest.)  PROVERI PRENOSI LI SE
-                .acquirerOrderId(transactionRequest.getAcquirerOrderId())
-                .acquirerTimestamp(transactionRequest.getAcquirerTimestamp())
-                .description(transactionRequest.getDescription())
-                .amount(transactionRequest.getAmount())
-                .paymentId(transactionRequest.getPaymentId()) //PROVERI GDE GA SETUJES
-                .issuerOrderId(transactionRequest.getIssuerOrderId())
-                .issuerTimestamp(transactionRequest.getIssuerOrderTimestamp())
-                .client(clientService.findByPan(transactionRequest.getAcquirerPan())) //ACQUIRER JE KLIJENT JER NJEMU IDE NOVAC
-                .build();
 
+        Transaction transaction = transactionRepository.findByPaymentId(transactionRequest.getPaymentId());
+        if(transaction != null) {
+            transaction.setAcquirerOrderId(transactionRequest.getAcquirerOrderId());
+            transaction.setAcquirerTimestamp(transactionRequest.getAcquirerTimestamp());
+           //setuj klijenta
+            transaction.setClient(clientService.findByPan(transactionRequest.getAcquirerPan()));
+            transaction.setIssuerOrderId(transactionRequest.getIssuerOrderId());
+            transaction.setIssuerTimestamp(transactionRequest.getIssuerOrderTimestamp());
+            transaction.setMerchantOrderId(transactionRequest.getMerchantOrderId());
+            transaction.setMerchantTimestamp(LocalDateTime.now()); //ovo ni ne treba
+            transaction.setTransactionStatus(transactionRequest.getTransactionStatus());
+            transaction.setAmount(transactionRequest.getAmount());
+        }
+        //prebacivanje sredstava
        transactionRepository.saveAndFlush(transaction);
         return transaction;
     }
