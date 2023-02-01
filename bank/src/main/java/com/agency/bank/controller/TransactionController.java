@@ -29,6 +29,9 @@ public class TransactionController {
     @Value("${app.pcpUrl}")
     private String panAcquirer;
 
+    @Value("${app.pccUrl}")
+    private String pccUrl;
+
     //kada kupac na pspu klike nacin placanja karticom i psp gadja ovaj endpoint
     @PostMapping
     public ResponseEntity<PaymentResponseDTO> requestPayment(@RequestBody PaymentForBankRequestDto paymentForBankRequestDto){
@@ -53,6 +56,7 @@ public class TransactionController {
     private void sendRequestToPCC(CardDto cardDto) {
         //napraviti dto sa podacima koji su potrebni pcc-u
         //posalti zahtev pcc preko restTemplate
+        restTemplate.postForObject(pccUrl, transactionService.paymentPCCRequest(cardDto), CardPaymentRequestDto.class);
     }
 
     private void sendRequestToPSP(Transaction transaction) {
@@ -68,4 +72,12 @@ public class TransactionController {
 
         restTemplate.postForObject(pspUrl, pspResponseDto, PSPResponseDto.class);
     }
+
+    //BANKA 2 kupca, njegova sredstva se rezervisu, i vraca odgovor pccu
+    @PostMapping(value = "/bank-payment")
+    public ResponseEntity<TransactionPCCResponseDto> payToBank(@RequestBody CardPaymentRequestDto cardDto){
+        Transaction transaction = transactionService.payBuyer(cardDto);
+         return new ResponseEntity<>(transactionService.responseToPCC(transaction), HttpStatus.CREATED);
+    }
+
 }

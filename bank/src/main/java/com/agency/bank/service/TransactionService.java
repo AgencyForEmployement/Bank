@@ -1,8 +1,6 @@
 package com.agency.bank.service;
 
-import com.agency.bank.dto.CardDto;
-import com.agency.bank.dto.PaymentForBankRequestDto;
-import com.agency.bank.dto.PaymentResponseDTO;
+import com.agency.bank.dto.*;
 import com.agency.bank.enums.TransactionStatus;
 import com.agency.bank.model.Card;
 import com.agency.bank.model.Client;
@@ -146,5 +144,63 @@ public class TransactionService {
 //            reservationService.deleteById(reservation);//izbrsi rezervaciju
 //        }
         //nije promenjena transakcija u success
+    }
+
+    //pcc korak
+    public CardPaymentRequestDto paymentPCCRequest(CardDto cardDto){
+        CardPaymentRequestDto paymentRequest = CardPaymentRequestDto.builder()
+                .acquirerOrderId(generateRandomNumber())
+                .acquirerTimestamp(LocalDateTime.now())
+                .cardHolderName(cardDto.getCardHolderName())
+                .amount(cardDto.getAmount())
+                .dateExpiration(cardDto.getDateExpiration())
+                .pan(cardDto.getPan())
+                .securityCode(cardDto.getSecurityCode())
+                .panAcquirer(panAcquirer)
+                .build();
+        return paymentRequest;
+    }
+
+    //Banka 2 koja je banka kupca, korak 5
+    public Transaction payBuyer(CardPaymentRequestDto cardDto) {
+        Transaction transaction = transactionRepository.findByAcquirerOrderId(cardDto.getAcquirerOrderId()); //on je id transakcije
+        if (cardService.findByPan(cardDto.getPan()) == null) { //ako stvarno jeste clan te banke
+            transaction.setTransactionStatus(TransactionStatus.FAILED);
+            return transaction;
+        }
+        if(checkClientAccountState(cardDto.getAmount(), clientService.findByPan(cardDto.getPan()))){
+            Reservation reservation = Reservation.builder()
+                    .description(cardDto.getDescription())
+                    .amount(cardDto.getAmount())
+                    .client(clientService.findByPan(cardDto.getPan()))
+                    .acquirerAccountNumber(clientService.findByPan(cardDto.getPanAcquirer()).getAccount().getAccountNumber())
+                    .build();
+            transaction.setTransactionStatus(TransactionStatus.SUCCESS); //bice uspesna cim ima sredstava, nema sta da pukne
+            transaction.setAcquirerOrderId(cardDto.getAcquirerOrderId());
+            transaction.setAcquirerTimestamp(cardDto.getAcquirerTimestamp()); //rezervacija na vreme samog zahteva iz pcca
+            reservationService.save(reservation);
+        } else {
+            transaction.setTransactionStatus(TransactionStatus.FAILED);
+        }
+        transactionRepository.saveAndFlush(transaction);
+        return transaction;
+    }
+
+    public TransactionPCCResponseDto responseToPCC(Transaction transaction){
+        TransactionPCCResponseDto response = TransactionPCCResponseDto.builder()
+                .transactionStatus(transaction.getTransactionStatus())
+                .amount(transaction.getAmount())
+                .description(transaction.getDescription())
+                .acquirerOrderId(transaction.getAcquirerOrderId())
+                .acquirerTimestamp(transaction.getAcquirerTimestamp())
+                .merchantOrderId(transaction.getMerchantOrderId())
+                .transactionStatus(transaction.getTransactionStatus())
+                .issuerOrderId(generateRandomNumber())
+                .issuerOrderTimestamp(LocalDateTime.now())
+                .paymentId(transaction.getPaymentId())
+                .acquirerPan(transaction.getClient().getCard().getPan())
+                .payer(transaction.getClient().getName() + " " + transaction.getClient().getSurname())
+                .build();
+    return response;
     }
 }
