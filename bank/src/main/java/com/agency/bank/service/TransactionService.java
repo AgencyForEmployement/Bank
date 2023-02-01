@@ -40,7 +40,7 @@ public class TransactionService {
 
     public Transaction pay(CardDto cardDto) {
         Client client = clientService.findByPan(cardDto.getPan()); //kupac
-        Transaction transaction = transactionRepository.findByPaymentIdAndUser(Integer.parseInt(cardDto.getPaymentId()), client.getId());
+        Transaction transaction = transactionRepository.findByPaymentId(Integer.parseInt(cardDto.getPaymentId()));
         Client acquirer = clientService.findByPan(panAcquirer); //prodavac
 
         //provarava validnost dobijenih podataka
@@ -61,30 +61,29 @@ public class TransactionService {
                         .client(client)
                         .build();
                 transaction.setTransactionStatus(TransactionStatus.IN_PROGRESS);
-                transaction.setClient(client);
                 reservationService.save(reservation);
             } else {
                 transaction.setTransactionStatus(TransactionStatus.FAILED); //klijent nema dovoljno raspolozivih sredstava pa je transakicja neuspesna
             }
         } else {
-            return null; // na kontroleru ce ovim da se preusmeri na korak 3b,4,5,6 -----------> slucaj kada su razlicite banke
+            return transaction; // na kontroleru ce ovim da se preusmeri na korak 3b,4,5,6 -----------> slucaj kada su razlicite banke
         }
         transactionRepository.save(transaction);
-        createTransactionForAcquirer(transaction, acquirer);
+        createTransactionForIssuer(transaction, client);
         return transaction;
     }
 
-    private void createTransactionForAcquirer(Transaction transaction, Client acquirer) {
-        Transaction acquirerTransaction = Transaction.builder()
+    private void createTransactionForIssuer(Transaction transaction, Client client) {
+        Transaction issuerTransaction = Transaction.builder()
                 .transactionStatus(transaction.getTransactionStatus())
                 .paymentId(transaction.getPaymentId())
                 .description(transaction.getDescription())
                 .merchantTimestamp(transaction.getMerchantTimestamp())
                 .merchantOrderId(transaction.getMerchantOrderId())
                 .amount(transaction.getAmount())
-                .client(acquirer)
+                .client(client)
                 .build();
-        transactionRepository.save(acquirerTransaction);
+        transactionRepository.save(issuerTransaction);
     }
 
     private boolean checkClientAccountState(double amount, Client client) {
@@ -107,7 +106,7 @@ public class TransactionService {
         return sum;
     }
 
-    private boolean sameBankForAcquirerAndIssuer(String pan) {
+    public boolean sameBankForAcquirerAndIssuer(String pan) {
         if (pan.substring(0,7).equals(panAcquirer.substring(0,7)))
             return true;
         return false;
@@ -122,15 +121,20 @@ public class TransactionService {
 
     public PaymentResponseDTO requestPayment(PaymentForBankRequestDto paymentForBankRequestDto) {
         //provera merchant info
+        Client acquirer = clientService.findByMerchantIdAndMerchantPassword(paymentForBankRequestDto.getMerchantId(), paymentForBankRequestDto.getMerchantPassword());
+
+        if (acquirer == null)
+            return null;
 
         Transaction transaction = Transaction.builder()
-                                                .paymentId(generateRandomNumber())
-                                                .transactionStatus(TransactionStatus.PAYMENT_REQUESTED)
-                                                .merchantOrderId(paymentForBankRequestDto.getMerchantOrderId())
-                                                .merchantTimestamp(paymentForBankRequestDto.getMerchantTimestamp())
-                                                .amount(paymentForBankRequestDto.getAmount())
-                                                .description(paymentForBankRequestDto.getDescription())
-                                                .build();
+                .paymentId(generateRandomNumber())
+                .transactionStatus(TransactionStatus.PAYMENT_REQUESTED)
+                .merchantOrderId(paymentForBankRequestDto.getMerchantOrderId())
+                .merchantTimestamp(paymentForBankRequestDto.getMerchantTimestamp())
+                .amount(paymentForBankRequestDto.getAmount())
+                .description(paymentForBankRequestDto.getDescription())
+                .client(acquirer)
+                .build();
 
         transactionRepository.save(transaction);
 

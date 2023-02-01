@@ -46,11 +46,12 @@ public class TransactionController {
     public ResponseEntity<String> pay(@RequestBody CardDto cardDto){
         Transaction transaction = transactionService.pay(cardDto);
 
-        if (transaction == null)
+        if (!transactionService.sameBankForAcquirerAndIssuer(cardDto.getPan()))
             sendRequestToPCC(cardDto);
         else
             sendRequestToPSP(transaction);
-            //obavestiti web shop da je nesto kupljeno, npr da mu se ne prikazuje kao artikal ??
+
+        //obavestiti web shop da je nesto kupljeno, npr da mu se ne prikazuje kao artikal ??
 
         return new ResponseEntity<>(transactionService.getPaymentURL(transaction, cardDto), HttpStatus.OK);
     }

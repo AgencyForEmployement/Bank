@@ -16,4 +16,8 @@ public class ClientService {
         Client c = clientRepository.findClientByPan(pan);
         return c;
     }
+
+    public Client findByMerchantIdAndMerchantPassword(String merchantId, String merchantPassword) {
+        return clientRepository.findByMerchantIdAndMerchantPassword(merchantId, merchantPassword);
+    }
 }
