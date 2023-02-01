@@ -1,15 +1,11 @@
 package com.agency.bank.service;
 
-import com.agency.bank.dto.CardDto;
-import com.agency.bank.dto.PaymentForBankRequestDto;
-import com.agency.bank.dto.PaymentResponseDTO;
+import com.agency.bank.dto.*;
 import com.agency.bank.enums.TransactionStatus;
 import com.agency.bank.model.*;
 import com.agency.bank.repository.AccountRepository;
 import com.agency.bank.repository.TransactionRepository;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -44,7 +40,7 @@ public class TransactionService {
 
     public Transaction pay(CardDto cardDto) {
         Client client = clientService.findByPan(cardDto.getPan()); //kupac
-        Transaction transaction = transactionRepository.findByPaymentId(Integer.parseInt(cardDto.getPaymentId()), client.getId());
+        Transaction transaction = transactionRepository.findByPaymentIdAndUser(Integer.parseInt(cardDto.getPaymentId()), client.getId());
         Client acquirer = clientService.findByPan(panAcquirer); //prodavac
 
         //provarava validnost dobijenih podataka
@@ -183,5 +179,44 @@ public class TransactionService {
             reservationService.delete(reservation);//izbrsi rezervaciju
         }
         //nije promenjena transakcija u success
+    }
+
+    //pcc korak
+    public Object paymentPCCRequest(CardDto cardDto){
+        CardPaymentRequestDto paymentRequest = CardPaymentRequestDto.builder()
+                .acquirerOrderId(generateRandomNumber())
+                .acquirerTimestamp(LocalDateTime.now())
+                .cardHolderName(cardDto.getCardHolderName())
+                .amount(Double. parseDouble(cardDto.getAmount()))
+                .dateExpiration(cardDto.getDateExpiration())
+                .pan(cardDto.getPan())
+                .securityCode(cardDto.getSecurityCode())
+                .panAcquirer(panAcquirer)
+                .paymentId(Integer.parseInt(cardDto.getPaymentId()))
+                .description(cardDto.getDescription())
+                .build();
+        return paymentRequest;
+    }
+
+    //kad od pcca stigne transakcija sa banke 2, ovde se kreira
+    public Transaction transferMoneyToBank(TransactionPCCResponseDto transactionRequest){
+        //OVDE TREBA DODATI PROVERU TRANSAKCIJE
+        Transaction transaction = Transaction.builder()
+                 .paymentId(transactionRequest.getPaymentId())
+                .transactionStatus(transactionRequest.getTransactionStatus())
+                .merchantOrderId((transactionRequest.getMerchantOrderId()))
+              //  .merchantTimestamp(transactionRequest.)  PROVERI PRENOSI LI SE
+                .acquirerOrderId(transactionRequest.getAcquirerOrderId())
+                .acquirerTimestamp(transactionRequest.getAcquirerTimestamp())
+                .description(transactionRequest.getDescription())
+                .amount(transactionRequest.getAmount())
+                .paymentId(transactionRequest.getPaymentId()) //PROVERI GDE GA SETUJES
+                .issuerOrderId(transactionRequest.getIssuerOrderId())
+                .issuerTimestamp(transactionRequest.getIssuerOrderTimestamp())
+                .client(clientService.findByPan(transactionRequest.getAcquirerPan())) //ACQUIRER JE KLIJENT JER NJEMU IDE NOVAC
+                .build();
+
+       transactionRepository.saveAndFlush(transaction);
+        return transaction;
     }
 }

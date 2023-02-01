@@ -23,15 +23,16 @@ public class TransactionController {
     private TransactionService transactionService;
     private RestTemplate restTemplate;
     private static String pspUrl; //mozda bude pucalo zbog noArgsCont a kada ne stavim njega ne prolazi mi ovo za citanje iz application.properties
-    private static String pcpUrl;
+    private static String pccUrl;
+
     @Value("${bank.pspUrl}")
     public void setPspUrl(String pspUrl){
         this.pspUrl = pspUrl;
     }
 
-    @Value("${bank.pcpUrl}")
-    public void setPcpUrl(String pcpUrl){
-        this.pcpUrl = pcpUrl;
+    @Value("${bank.pccUrl}")
+    public void setPccUrl(String pccUrl){
+        this.pccUrl = pccUrl;
     }
 
     //kada kupac na pspu klike nacin placanja karticom i psp gadja ovaj endpoint
@@ -57,6 +58,7 @@ public class TransactionController {
     private void sendRequestToPCC(CardDto cardDto) {
         //napraviti dto sa podacima koji su potrebni pcc-u
         //posalti zahtev pcc preko restTemplate
+      HttpStatus status =  restTemplate.postForObject("http://localhost:8085/requests", transactionService.paymentPCCRequest(cardDto), HttpStatus.class);
     }
 
     private void sendRequestToPSP(Transaction transaction) {
@@ -72,5 +74,13 @@ public class TransactionController {
 
         HttpStatus response = restTemplate.postForObject(pspUrl, pspResponseDto, HttpStatus.class);
         System.out.println(response);
+    }
+
+    //Pcc salje transakciju sa banke 2 za placanje
+    @PostMapping(value = "/transaction")
+    public ResponseEntity<HttpStatus> transactionFromPCC(@RequestBody TransactionPCCResponseDto transactionPCCResponse){
+       Transaction transaction = transactionService.transferMoneyToBank(transactionPCCResponse);
+       sendRequestToPSP(transaction);
+       return new ResponseEntity<>(HttpStatus.OK);
     }
 }

@@ -8,5 +8,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction,Long> {
     @Query("select t from Transaction t left join fetch t.client c where c.id = ?2 and t.paymentId = ?1")
-    Transaction findByPaymentId(int paymentId, long id);
+    Transaction findByPaymentIdAndUser(int paymentId, long id);
+
+    Transaction findByPaymentId(int paymentId);
 }
