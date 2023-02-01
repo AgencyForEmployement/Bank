@@ -11,7 +11,9 @@ import com.agency.bank.model.Transaction;
 import com.agency.bank.repository.TransactionRepository;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +21,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 
+@PropertySource(value = "application.properties", ignoreResourceNotFound = true)
 @AllArgsConstructor
-@NoArgsConstructor
 @Service
 public class TransactionService {
 
@@ -29,14 +31,21 @@ public class TransactionService {
     private ReservationService reservationService;
     private ClientService clientService;
 
-    @Value("${app.paymentUrl}")
-    private String paymentUrl;
+    private static String paymentUrl;
+    private static String panAcquirer;
 
-    @Value("${app.panAcquirer}")
-    private String panAcquirer;
+    @Value("${bank.paymentUrl}")
+    public void setPaymentUrl(String paymentUrl){
+        this.paymentUrl = paymentUrl;
+    }
+
+    @Value("${bank.panAcquirer}")
+    public void setPanAcquirer(String panAcquirer){
+        this.panAcquirer = panAcquirer;
+    }
 
     public Transaction pay(CardDto cardDto) {
-        Transaction transaction = transactionRepository.findByPaymentId(cardDto.getPaymentId());
+        Transaction transaction = transactionRepository.findByPaymentId(Integer.parseInt(cardDto.getPaymentId()));
         Client client = clientService.findByPan(cardDto.getPan()); //kupac
         Client acquirer = clientService.findByPan(panAcquirer); //prodavac
 
@@ -53,13 +62,14 @@ public class TransactionService {
                 //rezervacija sredstava
                 Reservation reservation = Reservation.builder()
                         .description(cardDto.getDescription())
-                        .amount(cardDto.getAmount())
+                        .amount(Double.parseDouble(cardDto.getAmount()))
                         .client(client)
                         .acquirerAccountNumber(acquirer.getAccount().getAccountNumber())
                         .build();
                 transaction.setTransactionStatus(TransactionStatus.IN_PROGRESS);
                 transaction.setAcquirerOrderId(generateRandomNumber());
                 transaction.setAcquirerTimestamp(LocalDateTime.now());
+                transaction.setClient(client);
                 reservationService.save(reservation);
             } else
                 transaction.setTransactionStatus(TransactionStatus.FAILED); //klijent nema dovoljno raspolozivih sredstava pa je transakicja neuspesna
@@ -109,14 +119,22 @@ public class TransactionService {
                                                 .merchantOrderId(paymentForBankRequestDto.getMerchantOrderId())
                                                 .merchantTimestamp(paymentForBankRequestDto.getMerchantTimestamp())
                                                 .amount(paymentForBankRequestDto.getAmount())
+                                                .description(paymentForBankRequestDto.getDescription())
                                                 .build();
 
-        transactionRepository.saveAndFlush(transaction);
+        transactionRepository.save(transaction);
 
-        return PaymentResponseDTO.builder()
+        PaymentResponseDTO response = PaymentResponseDTO.builder()
                 .paymentId(transaction.getPaymentId())
                 .paymentURL(paymentUrl)
+                .amount(transaction.getAmount())
+                .description(transaction.getDescription())
+                .successUrl(paymentForBankRequestDto.getSuccessUrl())
+                .errorUrl(paymentForBankRequestDto.getErrorUrl())
+                .failedUrl(paymentForBankRequestDto.getFailedUrl())
                 .build();
+
+        return response;
     }
 
     private int generateRandomNumber() {

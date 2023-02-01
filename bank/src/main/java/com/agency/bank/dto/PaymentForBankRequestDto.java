@@ -15,6 +15,7 @@ public class PaymentForBankRequestDto {
     private String merchantId;
     private String merchantPassword;
     private double amount;
+    private String description;
     private int merchantOrderId;
     private LocalDateTime merchantTimestamp;
     private String successUrl;

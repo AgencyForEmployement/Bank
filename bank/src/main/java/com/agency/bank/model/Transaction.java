@@ -1,6 +1,7 @@
 package com.agency.bank.model;
 
 import com.agency.bank.enums.TransactionStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -38,5 +39,6 @@ public class Transaction {
     @Column
     private String description;
     @ManyToOne(fetch = FetchType.LAZY,cascade =  CascadeType.ALL)
+    @JsonIgnore
     Client client;
 }

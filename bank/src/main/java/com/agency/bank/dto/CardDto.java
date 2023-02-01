@@ -10,13 +10,13 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CardDto {
-    private int paymentId;
+    private String paymentId;
     private String pan;
     private String securityCode;
     private String cardHolderName;
     private String dateExpiration;
-    private String description; //sta se kupuje
-    private double amount;
+    private String description; 
+    private String amount;
     private String successUrl;
     private String failedUrl;
     private String errorUrl;

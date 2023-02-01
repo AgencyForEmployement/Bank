@@ -5,6 +5,7 @@ import com.agency.bank.model.Transaction;
 import com.agency.bank.service.TransactionService;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,18 +17,16 @@ import org.springframework.web.client.RestTemplate;
 
 @RequestMapping("/payment")
 @AllArgsConstructor
-@NoArgsConstructor
 @Controller
 public class TransactionController {
 
     private TransactionService transactionService;
     private RestTemplate restTemplate;
-
     @Value("${app.pspUrl}")
-    private String pspUrl; //mozda bude pucalo zbog noArgsCont a kada ne stavim njega ne prolazi mi ovo za citanje iz application.properties
+    private static String pspUrl; //mozda bude pucalo zbog noArgsCont a kada ne stavim njega ne prolazi mi ovo za citanje iz application.properties
 
     @Value("${app.pcpUrl}")
-    private String panAcquirer;
+    private static String panAcquirer;
 
     //kada kupac na pspu klike nacin placanja karticom i psp gadja ovaj endpoint
     @PostMapping

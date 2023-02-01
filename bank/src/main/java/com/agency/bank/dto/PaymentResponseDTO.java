@@ -10,6 +10,8 @@ import lombok.*;
 public class PaymentResponseDTO {
     private String paymentURL;
     private int paymentId;
+    private double amount;
+    private String description;
     private String successUrl;
     private String failedUrl;
     private String errorUrl;
