@@ -45,7 +45,7 @@ public class TransactionService {
 
         //provarava validnost dobijenih podataka
         if (!checkValidityOfIssuerCardData(cardDto)){
-            transaction.setTransactionStatus(TransactionStatus.FAILED);
+            transaction.setTransactionStatus(TransactionStatus.FAILED); //OVDE TREBA FAILED ILI DRUGI STATUS??
             return transaction;
         }
 
@@ -214,13 +214,21 @@ public class TransactionService {
             transaction.setClient(clientService.findByPan(transactionRequest.getAcquirerPan()));
             transaction.setIssuerOrderId(transactionRequest.getIssuerOrderId());
             transaction.setIssuerTimestamp(transactionRequest.getIssuerOrderTimestamp());
-            transaction.setMerchantOrderId(transactionRequest.getMerchantOrderId());
-            transaction.setMerchantTimestamp(LocalDateTime.now()); //ovo ni ne treba
+            transaction.setMerchantOrderId(transaction.getMerchantOrderId());
+            transaction.setMerchantTimestamp(LocalDateTime.now());
             transaction.setTransactionStatus(transactionRequest.getTransactionStatus());
             transaction.setAmount(transactionRequest.getAmount());
         }
         //prebacivanje sredstava
-       transactionRepository.saveAndFlush(transaction);
+        transferMoneyToAccount(transaction.getAmount(), transactionRequest.getAcquirerPan());
+        transactionRepository.saveAndFlush(transaction);
         return transaction;
     }
+
+    private void transferMoneyToAccount(double amount, String pan){
+        Account account =  (clientService.findByPan(pan)).getAccount();
+        account.setAmount(account.getAmount() + amount);
+  accountRepository.save(account);
+    }
+
 }

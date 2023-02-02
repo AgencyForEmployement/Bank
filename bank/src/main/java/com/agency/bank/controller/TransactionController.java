@@ -57,8 +57,7 @@ public class TransactionController {
     }
 
     private void sendRequestToPCC(CardDto cardDto) {
-        //napraviti dto sa podacima koji su potrebni pcc-u
-        //posalti zahtev pcc preko restTemplate
+        //kad stavim pogresan pan, on ni ne posalje zahtev pccu?
       HttpStatus status =  restTemplate.postForObject("http://localhost:8085/requests", transactionService.paymentPCCRequest(cardDto), HttpStatus.class);
     }
 
