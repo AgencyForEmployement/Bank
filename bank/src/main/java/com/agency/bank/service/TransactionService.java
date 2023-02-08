@@ -45,7 +45,7 @@ public class TransactionService {
 
         //provarava validnost dobijenih podataka
         if (!checkValidityOfIssuerCardData(cardDto)){
-            transaction.setTransactionStatus(TransactionStatus.FAILED); //OVDE TREBA FAILED ILI DRUGI STATUS??
+            transaction.setTransactionStatus(TransactionStatus.FAILED);
             return transaction;
         }
 
@@ -60,7 +60,7 @@ public class TransactionService {
                         .acquirerAccountNumber(acquirer.getAccount().getAccountNumber())
                         .client(client)
                         .build();
-                transaction.setTransactionStatus(TransactionStatus.IN_PROGRESS);
+                transaction.setTransactionStatus(TransactionStatus.SUCCESS);
                 reservationService.save(reservation);
             } else {
                 transaction.setTransactionStatus(TransactionStatus.FAILED); //klijent nema dovoljno raspolozivih sredstava pa je transakicja neuspesna
@@ -229,6 +229,10 @@ public class TransactionService {
         Account account =  (clientService.findByPan(pan)).getAccount();
         account.setAmount(account.getAmount() + amount);
   accountRepository.save(account);
+    }
+
+    public Transaction findByPaymentId(int id) {
+        return  transactionRepository.findByPaymentId(id);
     }
 
 }
